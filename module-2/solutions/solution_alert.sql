@@ -2,7 +2,7 @@ USE ROLE accountadmin;
 USE DATABASE staging_tasty_bytes;
 USE SCHEMA public;
 
-CREATE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
+CREATE OR REPLACE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
   alert_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
   alert_name VARCHAR,
   severity VARCHAR,
@@ -33,7 +33,7 @@ CREATE OR REPLACE ALERT order_data_quality_alert
       AND ORDER_TS > DATEADD(hour, -6, CURRENT_TIMESTAMP());
         
       -- Call stored procedure for notification
-      -- CALL notify_data_quality_team();
+      CALL staging_tasty_bytes.raw_pos.notify_data_quality_team();
     END;
 
 -- Check alert status

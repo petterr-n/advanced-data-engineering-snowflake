@@ -2,7 +2,7 @@ USE ROLE accountadmin;
 USE DATABASE staging_tasty_bytes;
 USE SCHEMA public;
 
-CREATE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
+CREATE OR REPLACE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
   alert_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
   alert_name VARCHAR,
   severity VARCHAR,
@@ -11,9 +11,8 @@ CREATE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
 );
 
 -- Create a serverless alert with a schedule:
-
-  
-  SCHEDULE = 
+CREATE OR REPLACE ALERT order_data_quality_alert
+  SCHEDULE = '30 MINUTE'
   IF (EXISTS (
     SELECT * FROM STAGING_TASTY_BYTES.RAW_POS.ORDER_HEADER 
     WHERE (ORDER_AMOUNT IS NULL OR ORDER_TOTAL IS NULL) 
@@ -34,6 +33,7 @@ CREATE TABLE staging_tasty_bytes.telemetry.data_quality_alerts (
       AND ORDER_TS > DATEADD(hour, -6, CURRENT_TIMESTAMP());
         
       -- Call stored procedure for notification:
+      -- CALL staging_tasty_bytes.raw_pos.notify_data_quality_team();
       
     END;
 
@@ -44,6 +44,7 @@ SHOW ALERTS LIKE 'order_data_quality_alert';
 ALTER ALERT order_data_quality_alert RESUME;
 
 -- Execute the alert:
+EXECUTE ALERT order_data_quality_alert;
 
 
 -- Insert dummy data with missing ORDER_AMOUNT or ORDER_TOTAL
